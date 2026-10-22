@@ -1,3 +1,4 @@
+ import { useRef } from 'react'
 import React from 'react'
  import InputBox from '../components/inputBox.component'
  import googleIcon from '../images/google.png'
@@ -5,6 +6,11 @@ import { Link } from 'react-router-dom'
  import AnimationWrapper from '../common/page.animation'
 
 function UserAuthForm({type}) {
+
+	const handleSubmit = (e)=>{
+		e.preventDefault()
+	}
+
 	return (
 		<AnimationWrapper keyValue={type}>	
 
@@ -43,6 +49,7 @@ function UserAuthForm({type}) {
 					<button 
 						className='btn-dark center mt-14'
 						type='submit'
+						onClick={handleSubmit}
 					>
 						{
 							type.replace('-', ' ')
