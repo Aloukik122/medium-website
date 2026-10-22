@@ -1,10 +1,10 @@
-POST http://localhost:3000/signup
+POST http://localhost:3000/signin
 Content-Type: application/json
 
 
 {
-	"fullname" : "",
-	"email" : "",
-	"password": ""
+
+	"email" : "aloukikpatel@zohomail.in",
+	"password": "123A@sddf"
 
 }
