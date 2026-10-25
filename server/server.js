@@ -4,6 +4,8 @@ import 'dotenv/config'
 import bcrypt from 'bcrypt'
 import { nanoid } from 'nanoid'
 import jwt from 'jsonwebtoken'
+import cors from 'cors'
+
 
 // schema bellow
 import User from './Schema/User.js'
@@ -19,6 +21,7 @@ const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$
 // console.log(emailRegex.test("user@example.com")); // true
 // console.log(passwordRegex.test("StrongP@ss123")); // true   
 
+server.use(cors())
 server.use(express.json())
 
 mongoose.connect(process.env.DB_URI, {

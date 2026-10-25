@@ -1,49 +1,99 @@
- import { useRef } from 'react'
+import { useContext, useRef } from 'react'
 import React from 'react'
- import InputBox from '../components/inputBox.component'
- import googleIcon from '../images/google.png'
-import { Link } from 'react-router-dom'
- import AnimationWrapper from '../common/page.animation'
+import InputBox from '../components/inputBox.component'
+import googleIcon from '../images/google.png'
+import { data, Link, Navigate, ServerRouter } from 'react-router-dom'
+import AnimationWrapper from '../common/page.animation'
+import toast, { Toaster } from 'react-hot-toast'
+import axios from 'axios'
+import { storeInSession } from '../common/session'
+import { UserContext } from '../App'
+
 
 function UserAuthForm({type}) {
 
 	const authForm = useRef()
 
+	let { userAuth: {access_token}, setUserAuth } = useContext(UserContext)
+
+	console.log(access_token)
+
+	const userAuthThroughServer = (serverRoute, formData) =>{
+
+// frontend and backend running on diff ports so we use (core)
+
+		axios.post(import.meta.env.VITE_SERVER_DOMAIN + serverRoute, formData)
+		.then(({data})=>{
+			storeInSession('user', JSON.stringify(data))
+
+			setUserAuth(data)
+			console.log(sessionStorage)
+		})
+		.catch(({response})=>{
+		toast.error(response.data.error)
+	})
+	
+}
+
 	const handleSubmit = (e)=>{
 		e.preventDefault()
 
-		if (!authForm.current) return;
-		let form = new FormData(authForm.current)
+		let serverRoute = type == 'sign-in' ? '/signin' : '/signup';
+
+		const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+		const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+
+//formData
+		let form = new FormData(formElement)
 		// console.log(form)
+
 		let formData = {}
 		for (let [key,value] of form.entries()){
 			formData[key] = value
 		}
 
-// form validation copy from server.js signup
+		// console.log(formData)
+
+// form validation copy from server.js for signup and signin
 
 		let {fullname, email, password} = formData
 
-		if( fullname.length < 3 ){
-			return res.status(403).json({"error": "Fullname must be at least 3 letter long"})
+// signin has 2 input but signup has 3 input 
+
+		if(fullname){
+			if( fullname.length < 3 ){
+			return toast.error("Fullname must be at least 3 letter long")
+			}
 		}
 		if( !email.length ){
-			return res.status(403).json({"error": "Enter email"})
+			return toast.error("Enter email")
 		}
 		if( !emailRegex.test(email) ){
-			return res.status(403).json({"error": "invalid email"})
+			return toast.error( "invalid email")
 		}
 		if( !passwordRegex.test(password) ){
-			return res.status(403).json({"error": "Password should be 6 to 20 character long with a numaric, 1 lowercase, 1 uppercase letter and special character "})
+			return toast.error( "Password should be 6 to 20 character long with a numaric, 1 lowercase, 1 uppercase letter and special character ")
 		}
-		}
+
+		userAuthThroughServer(serverRoute, formData)
+	}
 
 
 	return (
+
+		access_token ? 
+		<Navigate to='/'/>
+
+		:
+		 
 		<AnimationWrapper keyValue={type}>	
 
 			<section className='h-cover flex justify-center items-center'>
-				<form ref={authForm} className='w-[80%] max-w-100' action="">
+
+{/*for alert use toster*/}
+				<Toaster /> 
+				<form id='formElement' className='w-[80%] max-w-100' action="">
 					<h1 className='text-4xl font-gelasio capitalize text-center mb-24'>
 						
 						{type == 'sign-in' ? 'Welcome back' : 'Join us today'}
