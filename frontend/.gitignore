@@ -2,7 +2,7 @@
 
 .env
 firebase.jsx
-
+firebase-google.json
 node_modules
 scripts/flow/*/.flowconfig
 .flowconfig
