@@ -5,7 +5,10 @@ import bcrypt from 'bcrypt'
 import { nanoid } from 'nanoid'
 import jwt from 'jsonwebtoken'
 import cors from 'cors'
-
+import { initializeApp, cert } from 'firebase-admin/app'
+import { getAuth } from 'firebase-admin/auth';
+import serviceAccountKey from './medium-website-c1cb4-firebase-adminsdk-fbsvc-1dfa41fbde.json' with { type: 'json' };
+import pkg from 'firebase-admin'
 
 // schema bellow
 import User from './Schema/User.js'
@@ -14,6 +17,10 @@ import User from './Schema/User.js'
 
 const server = express()
 let PORT = 3000
+
+initializeApp({
+	credential: cert(serviceAccountKey)
+})
 
 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
@@ -127,6 +134,52 @@ server.post('/signin',(req,res)=>{
 
 }) 
 
+
+server.post('/google-auth', async (req,res)=>{
+	let { access_token } = req.body
+
+	getAuth()
+	.verifyIdToken(access_token)
+	.then(async (decodedUser) =>{
+
+		let {email, name, picture } = decodedUser
+
+// to get the high resolution image from the google profile use the same code
+
+		picture = picture.replace("s96-c", "s384-c") 
+
+		let user =  await User.findOne({'personal_info.email': email}).select("personal_info.fullname personal-info.username personal_info.profile_img google_auth").then((u)=>{
+			return u || null
+		})
+		.catch(err =>{
+			return res.status(500).json({"error": err.message})
+		})
+		if(user){
+			if(!user.google_auth){
+				return res.status(403).json({"erroe": "This email was signes up without google. please log in with password"})
+			}
+		}
+		else{
+			let username = await generateUsername(email)
+			user = new User({
+				personal_info : { fullname: name, email, profile_img: picture, username },
+				google_auth: true
+			})
+
+			await user.save().then((u)=>{
+				user = u
+			})
+			.catch(err =>{
+				return res.status(500).json({"error": err.message})
+			})
+		}
+
+		return res.status(200).json(formatDataToSend(user))
+	})
+	.catch(err=>{
+		return res.status(500).json({"error":"failed to authenticate with google, try with other account"})
+	})
+})
 
 
 server.listen(PORT, ()=>{

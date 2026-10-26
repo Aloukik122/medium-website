@@ -1,7 +1,12 @@
 .DS_STORE
+
+.env
+firebase.jsx
+
 node_modules
 scripts/flow/*/.flowconfig
 .flowconfig
+
 *~
 *.pyc
 .grunt
