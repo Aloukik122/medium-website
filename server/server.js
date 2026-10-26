@@ -7,7 +7,7 @@ import jwt from 'jsonwebtoken'
 import cors from 'cors'
 import { initializeApp, cert } from 'firebase-admin/app'
 import { getAuth } from 'firebase-admin/auth';
-import serviceAccountKey from './medium-website-c1cb4-firebase-adminsdk-fbsvc-1dfa41fbde.json' with { type: 'json' };
+import serviceAccountKey from './firebase-google.json' with { type: 'json' };
 import pkg from 'firebase-admin'
 
 // schema bellow
