@@ -114,16 +114,24 @@ server.post('/signin',(req,res)=>{
 			return res.status(403).json({'error': 'email not found'})
 		}
 
-		bcrypt.compare(password, user.personal_info.password, (err, result)=>{
-			if(err){
-				return res.status(403).json({'error': ' error occured while login'})
-			}
-			if(!result){
-				return res.status(403).json({'error': 'incorrect password '})
-			}else{
-			 	return res.status(200).json(formatDataToSend(user))	
-			}
-		})
+		if(!user.google_auth){
+
+			bcrypt.compare(password, user.personal_info.password, (err, result)=>{
+				if(err){
+					return res.status(403).json({'error': ' error occured while login'})
+				}
+				if(!result){
+					return res.status(403).json({'error': 'incorrect password '})
+				}else{
+				 	return res.status(200).json(formatDataToSend(user))	
+				}
+			})
+
+		}else{
+			return res.status(403).json({"error": "Account was created using google. Try logging it with google"})
+		}
+
+		
 		
 	})
 
