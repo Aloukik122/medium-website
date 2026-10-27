@@ -9,6 +9,7 @@ import { initializeApp, cert } from 'firebase-admin/app'
 import { getAuth } from 'firebase-admin/auth';
 import serviceAccountKey from './firebase-google.json' with { type: 'json' };
 import pkg from 'firebase-admin'
+import aws from 'aws-sdk'
 
 // schema bellow
 import User from './Schema/User.js'
@@ -31,9 +32,20 @@ const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$
 server.use(cors())
 server.use(express.json())
 
+
 mongoose.connect(process.env.DB_URI, {
 	autoIndex: true
 })
+
+
+// setting s3 bucket
+
+const s3 = new aws.s3({
+	region: 'ap-southeast-2',
+	accessKeyId: process.env.AWS_ACCESS_KEY ,
+	secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+})
+
 
 const formatDataToSend = (user) =>{
 
