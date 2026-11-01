@@ -14,8 +14,6 @@ import aws from 'aws-sdk'
 // schema bellow
 import User from './Schema/User.js'
 
-
-
 const server = express()
 let PORT = 3000
 
@@ -40,11 +38,27 @@ mongoose.connect(process.env.DB_URI, {
 
 // setting s3 bucket
 
-const s3 = new aws.s3({
+const s3 = new aws.S3({
 	region: 'ap-southeast-2',
 	accessKeyId: process.env.AWS_ACCESS_KEY ,
 	secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
 })
+
+
+const generateUploadURL = async () =>{
+
+
+	const date = new Date()
+	const imageName = `${nanoid()}-${date.getTime()}.jpeg`
+
+	return await s3.getSignedUrlPromise('putObject', {
+		Bucket: 'medium-blogging-websiteimages',
+		Key : imageName,
+		Expires : 1000,
+		ContentType: "image/jpeg"
+	})
+
+}
 
 
 const formatDataToSend = (user) =>{
@@ -70,6 +84,23 @@ const generateUsername = async (email) =>{
 	isUsernameNotUnique ? username += nanoid().substring(0, 5): "";
 	return username
 }
+
+
+
+
+// upload image URL route
+server.get('/get-upload-url',(req, res)=>{
+
+	generateUploadURL().then(url => res.status(200).json({uploadURL : url}))
+
+	.catch(err => {
+		console.log(err.message)
+		return res.status(500).json({error : err.message})
+	})
+
+	
+})
+
 
 
 server.post('/signup', (req, res) =>{
