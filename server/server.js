@@ -45,17 +45,16 @@ const s3 = new aws.S3({
 })
 
 
-const generateUploadURL = async () =>{
-
+const generateUploadURL = async (imageType = 'jpeg') =>{ 
 
 	const date = new Date()
-	const imageName = `${nanoid()}-${date.getTime()}.jpeg`
+	const imageName = `${nanoid()}-${date.getTime()}.${imageType}`
 
 	return await s3.getSignedUrlPromise('putObject', {
 		Bucket: 'medium-blogging-websiteimages',
 		Key : imageName,
 		Expires : 1000,
-		ContentType: "image/jpeg"
+		ContentType: `image/${imageType}`
 	})
 
 }
@@ -91,7 +90,9 @@ const generateUsername = async (email) =>{
 // upload image URL route
 server.get('/get-upload-url',(req, res)=>{
 
-	generateUploadURL().then(url => res.status(200).json({uploadURL : url}))
+	let imgType = req.query.type || 'jpeg';
+
+	generateUploadURL(imgType).then(url => res.status(200).json({uploadURL : url}))
 
 	.catch(err => {
 		console.log(err.message)
