@@ -13,6 +13,9 @@ import aws from 'aws-sdk'
 
 // schema bellow
 import User from './Schema/User.js'
+import Blog from './Schema/Blog.js'
+
+
 
 const server = express()
 let PORT = 3000
@@ -55,6 +58,26 @@ const generateUploadURL = async (imageType = 'jpeg') =>{
 		Key : imageName,
 		Expires : 1000,
 		ContentType: `image/${imageType}`
+	})
+
+}
+
+const verifyJWT = (req, res, next) =>{
+
+	const authHeader = req.headers['authorization']
+	const token = authHeader && authHeader.split(" ")[1]
+
+	if(token == null){
+		return res.status(401).json({error: 'No acess token'})
+	}
+
+	jwt.verify(token, process.env.SECRET_ACCESS_KEY, (err, user) =>{
+		if (err){
+			return res.status(403).json({error: 'access token is invalid'})
+		}
+
+		req.user = user.id
+		next()
 	})
 
 }
@@ -231,6 +254,50 @@ server.post('/google-auth', async (req,res)=>{
 	.catch(err=>{
 		return res.status(500).json({"error":"failed to authenticate with google, try with other account"})
 	})
+})
+
+server.post('/create-blog', verifyJWT, (req,res) =>{
+	// console.log(req.body)
+
+	let authorId = req.user
+
+	let { title, des, banner, tags, content, draft } = req.body
+
+	if(!title.length){
+
+		return res.status(403).json({error: 'you munst provide a title to publish the blog'})
+	}
+
+	if(!des.length){
+
+		return res.status(403).json({error: 'you munst provide a descreption of 200 letters to publish the blog'})
+	}
+
+	if(!banner.length){
+
+		return res.status(403).json({error: 'you munst provide a banner to publish the blog'})
+	}
+
+	if(!title.length){
+
+		return res.status(403).json({error: 'you munst provide a title to publish the blog'})
+	}
+
+	if(!tags.length || tags.length > 10){
+
+		return res.status(403).json({error: 'you munst provide a tags to publish the blog'})
+	}
+
+
+	tags = tags.map(tag => tag.toLowerCase())
+
+	let blogId = title.replace(/[^a-zA-Z0-9]/g, ' ').replace(/\s+/g, "-").trim() + nanoid()
+	// console.log(blogId)
+
+	let blog
+
+	return res.json({status: "done"})
+	
 })
 
 

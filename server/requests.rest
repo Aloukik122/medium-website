@@ -1,3 +1,13 @@
+POST http://localhost:3000/create-blog
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhZTk5MGI5YWUwMzc3NjkyYjJiMWI0OSIsImlhdCI6MTc5MzY5MTgzM30.pzTXJY_88FparosjLKS44Qhr4WPPz-rkN_mpEuNRkuM
 
-
-GET http://localhost:3000/get-upload-url
+{
+	"title":"this is a test title",
+	"banner":"https://test.com/img",
+	"des":"this is des",
+	"content": {
+		"blocks": [1,2]
+	},
+	"tags":["tag1", "tag2"]
+}

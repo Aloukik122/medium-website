@@ -1,4 +1,4 @@
-import { Toaster } from "react-hot-toast"
+import toast, { Toaster } from "react-hot-toast"
 import AnimationWrapper from "../common/page.animation"
 import { useContext, useEffect, useRef } from "react"
 import { EditorContext } from "../pages/editor.pages"
@@ -11,6 +11,7 @@ const PublishForm = () =>{
 
 
 	let characterLimit = 200
+	let tagLimit = 10
 
 	let {blog, blog : { banner, title, tags, des,content },setBlog , setEditorState } = useContext(EditorContext)
 
@@ -66,6 +67,28 @@ const previewEditorRef = useRef(null);
 		let input = e.target
 		// console.log(e)
 		setBlog({ ...blog,des: input.value })
+	}
+
+	const handleKeyDown = (e) =>{
+		// console.log(e.keyCode)
+
+		if(e.keyCode == 13 || e.keyCode == 188) {
+			e.preventDefault()
+
+			let tag = e.target.value
+
+			// console.log(tag)
+
+			if(tags.length < tagLimit ){
+				if(!tags.includes(tag) && tag.length){
+					setBlog({ ...blog , tags : [...tags, tag]})
+				}
+			} else{
+				toast.error(`you can add manx ${tagLimit}`)
+			}
+			e.target.value = ''
+		} 
+
 	}
 
 	return (
@@ -144,12 +167,24 @@ const previewEditorRef = useRef(null);
 		            <p className="text-gray-500 text-sm mt-9">Topic - ( Helps searching and ranking your blog )</p>
 
 		            <div className=" relative input-box pl-2 py-2 pb-4 ">
-		            	<input type="text" placeholder=" Topic " className="sticky input-box bg-white top-0 left-0 pl-4 mb-3 " />
-		            	<Tag tag="testing tag" />
+		            	<input type="text" placeholder=" Topic " className="sticky input-box bg-white top-0 left-0 pl-4 mb-3 " 
+		            		onKeyDown={handleKeyDown}
+
+		            	/>
+		            	
+
+		            	{
+		            		tags.map((tag, i) => {
+		            			return <Tag tag={tag} key={i} tagIndex={i} />
+		            		})
+		            	}
+
 		            </div>
 
+		            <p className=" mt-1 mb-4 text-gray-500 text-right ">{ tagLimit - tags.length } Tags left</p>
+
 		            {/* Example Final Publish Button */}
-		            <button onClick={handleFinalPublish} className="btn-dark mt-5">
+		            <button onClick={handleFinalPublish} className="btn-dark mt-5 px-8">
 		                Final Publish
 		            </button>
 
