@@ -5,7 +5,7 @@ Content-Type: application/json
 	"blog-name":"this is a test blog"
 }
 
-
+------------------------------------------------------------------------------------
 
 #---(access token ) ---    eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhZTk5MGI5YWUwMzc3NjkyYjJiMWI0OSIsImlhdCI6MTc5MzY5MTgzM30.pzTXJY_88FparosjLKS44Qhr4WPPz-rkN_mpEuNRkuM
 
@@ -17,3 +17,8 @@ Content-Type: application/json
 	"email": "john2@gmail.com",
 	"password" : "asd123!A"
 }
+
+--------------------------------------------------------------------------------------------------
+
+
+GET http://localhost:3000/latest-blogs

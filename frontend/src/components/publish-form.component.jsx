@@ -5,49 +5,76 @@ import { EditorContext } from "../pages/editor.pages"
 import EditorJS from '@editorjs/editorjs';
 import { tools } from "./tools.components";
 import Tag from "./tags.components";
+import { useNavigate } from "react-router-dom"
+import { UserContext } from "../App";
+import axios from 'axios'
+
+
 
 const PublishForm = () =>{
-
-
 
 	let characterLimit = 200
 	let tagLimit = 10
 
 	let {blog, blog : { banner, title, tags, des,content },setBlog , setEditorState } = useContext(EditorContext)
 
+	let { userAuth : { access_token } } = useContext(UserContext)
+	let navigate = useNavigate()
 
+// const previewEditorRef = useRef(null);
+//  useEffect(() => {
+//         if (content && content.blocks && content.blocks.length > 0) {
+//             // Initialize WITHOUT readOnly
+//             previewEditorRef.current = new EditorJS({
+//                 holder: 'publishEditor',
+//                 data: content,
+//                 tools: tools,
+//                 placeholder: "Edit your content here...",
+//             });
+//         }
+//         return () => {
+//             if (previewEditorRef.current && previewEditorRef.current.destroy) {
+//                 previewEditorRef.current.destroy();
+//                 previewEditorRef.current = null;
+//             }
+//         };
+//     }, [content]);
 
-const previewEditorRef = useRef(null);
- useEffect(() => {
-        if (content && content.blocks && content.blocks.length > 0) {
-            // Initialize WITHOUT readOnly
-            previewEditorRef.current = new EditorJS({
-                holder: 'publishEditor',
-                data: content,
-                tools: tools,
-                placeholder: "Edit your content here...",
-            });
-        }
-        return () => {
-            if (previewEditorRef.current && previewEditorRef.current.destroy) {
-                previewEditorRef.current.destroy();
-                previewEditorRef.current = null;
-            }
-        };
-    }, [content]);
-
-  const handleFinalPublish = async () => {
-        if (previewEditorRef.current) {
-            // Save the newly edited data from the preview editor
-            const savedData = await previewEditorRef.current.save();
+// const handleFinalPublish = async () => {
+//         if (previewEditorRef.current) {
+//             // Save the newly edited data from the preview editor
+//             const savedData = await previewEditorRef.current.save();
             
-            // Update your context with the final, edited data
-            setBlog({ ...blog, content: savedData });
-            
-            // Call your API to push to database here...
-            console.log("Final Data to send to API:", { ...blog, content: savedData });
-        }
-    };
+//             // Update your context with the final, edited data
+//             setBlog({ ...blog, content: savedData });
+
+//             // Call your API to push to database here...
+//             console.log("Final Data to send to API:", { ...blog, content: savedData });
+//         }
+
+//         let blogObj = {
+//         	title, banner, des, content, tags, draft: false
+//         }
+
+//          axios.post(import.meta.env.VITE_SERVER_DOMAIN + "/create-blog", blogObj, {
+//          	headers : {
+//          		'Authorization' : `Bearer ${access_token}`
+//          	}
+//          })
+//          .then(() =>{
+//          	toast.success("published")
+
+//          	setTimeout(()=>{
+//          		navigate("/")
+//          	}, 500)
+
+//          })
+//          .catch(({ response }) => {
+
+//          	return toast.error(response.data.error)
+
+//          })
+//     }
 
 
 
@@ -91,6 +118,57 @@ const previewEditorRef = useRef(null);
 
 	}
 
+	const publishBlog = (e) =>{
+
+		if(e.target.className.includes("disable")){
+			return
+		}
+
+		if(!title.length){
+			return toast.error("write blog titele to publish")
+		}
+		if(!des.length){
+			return toast.error("write blog descreption to publish")
+		}
+		if(!tags.length){
+			return toast.error("write blog tags to publish")
+		}
+
+		let loadingToast = toast.loading("Publishing...")
+
+		e.target.classList.add("disable")
+
+		let blogObj = {
+
+        	title, banner, des, content, tags, draft: false
+        }
+
+         axios.post(import.meta.env.VITE_SERVER_DOMAIN + "/create-blog", blogObj, {
+         	headers : {
+         		'Authorization' : `Bearer ${access_token}`
+         	}
+         })
+         .then(() =>{
+         	e.target.classList.remove("disable")
+
+         	toast.dismiss(loadingToast)
+         	toast.success("published")
+
+         	setTimeout(()=>{
+         		navigate("/")
+         	}, 500)
+
+         })
+         .catch(({ response }) => {
+         	e.target.classList.remove("disable")
+         	toast.dismiss(loadingToast)
+
+         	return toast.error(response.data.error)
+
+         })
+
+	}
+
 	return (
 
 		<AnimationWrapper>
@@ -120,31 +198,17 @@ const previewEditorRef = useRef(null);
 
 
 
-				{/*<div className="border-gray-300 lg:border lg:pl-8">
-					
-					<p className="text-gray-500 mb-2 mt-9">Blog Title</p>
-					<input 
-						type="text" 
-						placeholder="Blog Title"
-						className="input-box pl-4"
-						defaultValue={title}
-						onChange={handleBlogTitleChange}
-					/>
-					<p className="text-gray-500 mb-2 mt-9">Short description about your blog</p>
-					<textarea
+				{/*`<textarea
 						maxLength={characterLimit} 
 						value={des || ""}
 						className="h-40 resize-none leading-7 input-box pl-4"
 						onChange={handleBlogDesChange}
-
 					>
-					</textarea>
-
-				</div>*/}
+					</textarea>*/}
 
 
-				<div className=" lg:border p-8">
-		            <p className="text-gray-500 mb-2 mt-9">Blog Title</p>
+				<div className="border-gray-300 lg:border lg:pl-8" >
+		            <p className="text-gray-500 mb-2 mt-9">Blog Title </p>
 		            <input 
 						type="text" 
 						placeholder="Blog Title"
@@ -156,12 +220,23 @@ const previewEditorRef = useRef(null);
 		            	className="text-4xl font-medium mt-2 leading-tight">{title}</h1>*/}
 		            
 		            <p className="text-gray-500 mb-2 mt-9">Short description about your blog</p>
-		            <div 
+
+{/*for testing */}
+		            <textarea
+						maxLength={characterLimit} 
+						defaultValue={des}
+						className="h-40 resize-none leading-7 input-box pl-4"
+						onChange={handleBlogDesChange}
+					>
+					</textarea>
+
+{/*testing end*/}
+		           {/* <div 
 		            	id="publishEditor" 
 		            	className=" font-gelasio  border-b border-gray-200"
-		            ></div>
+		            ></div>*/}
 
-		            {/*<p className="">{ characterLimit - des.length } character left</p>*/}
+		            <p className="">{ characterLimit - des.length } character left</p>
 		            
 
 		            <p className="text-gray-500 text-sm mt-9">Topic - ( Helps searching and ranking your blog )</p>
@@ -184,7 +259,7 @@ const previewEditorRef = useRef(null);
 		            <p className=" mt-1 mb-4 text-gray-500 text-right ">{ tagLimit - tags.length } Tags left</p>
 
 		            {/* Example Final Publish Button */}
-		            <button onClick={handleFinalPublish} className="btn-dark mt-5 px-8">
+		            <button onClick={publishBlog} className="btn-dark px-8">
 		                Final Publish
 		            </button>
 

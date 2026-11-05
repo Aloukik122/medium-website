@@ -268,38 +268,78 @@ server.post('/create-blog', verifyJWT, (req,res) =>{
 		return res.status(403).json({error: 'you munst provide a title to publish the blog'})
 	}
 
-	if(!des.length){
+	if(!draft){
+
+		if(!des.length){
 
 		return res.status(403).json({error: 'you munst provide a descreption of 200 letters to publish the blog'})
-	}
+		}
 
-	if(!banner.length){
+		if(!banner.length){
 
-		return res.status(403).json({error: 'you munst provide a banner to publish the blog'})
-	}
+			return res.status(403).json({error: 'you munst provide a banner to publish the blog'})
+		}
 
-	if(!title.length){
+		if(!title.length){
 
-		return res.status(403).json({error: 'you munst provide a title to publish the blog'})
-	}
+			return res.status(403).json({error: 'you munst provide a title to publish the blog'})
+		}
 
-	if(!tags.length || tags.length > 10){
+		if(!tags.length || tags.length > 10){
 
-		return res.status(403).json({error: 'you munst provide a tags to publish the blog'})
+			return res.status(403).json({error: 'you munst provide a tags to publish the blog'})
+		}
+
 	}
 
 
 	tags = tags.map(tag => tag.toLowerCase())
 
-	let blogId = title.replace(/[^a-zA-Z0-9]/g, ' ').replace(/\s+/g, "-").trim() + nanoid()
+	let blog_id = title.replace(/[^a-zA-Z0-9]/g, ' ').replace(/\s+/g, "-").trim() + nanoid()
 	// console.log(blogId)
 
-	let blog
+	let blog = new Blog({
+		title, des, banner, author: authorId, blog_id, draft: Boolean(draft)
+	})
 
-	return res.json({status: "done"})
+	blog.save().then(blog =>{
+
+
+		let incrementVal =draft ? 0 : 1
+
+		User.findOneAndUpdate({ _id: authorId },{ $inc : { "account_info.total_posts" : incrementVal }, $push : { "blogs": blog._id } })
+		.then(user =>{
+			return res.status(200).json({ id : blog.blog_id })
+		})
+		.catch(err =>{
+			return res.status(500).json({ error: "failed to update total post number"})
+		})
+
+	})
+	.catch(err =>{
+		return res.status(500).json({ error : err.message})
+	})
 	
 })
 
+server.get('/latest-blogs', (req, res)=>{
+
+	let maxLimit = 5
+
+	Blog.find({ draft : false})
+
+	.populate("author", "personal_info.profile_img personal_info.username personal_info.fullname -_id")
+	.sort({ "publishedAt" : -1 })
+	.select("blog_id title des banner activity tags publishedAt -_id")
+	.limit(maxLimit)
+	.then(blogs => {
+		return res.status(200).json({ blogs})
+	})
+	.catch(err =>{
+		return res.status(500).json({error : err.message})
+	})
+
+})
 
 server.listen(PORT, ()=>{
 	console.log('listening on -> ' + PORT)
